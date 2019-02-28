@@ -1,4 +1,4 @@
-# Git
+# How Git Works
 
 [From pluralsight: 《How Git Works》-- by Paolo Perrotta](https://app.pluralsight.com/library/courses/how-git-works/table-of-contents)
 
@@ -50,6 +50,7 @@ So far, we have seen that Git is able to take any piece of content, generate a k
 > * git add [名称]
 > * git commit -m [注释]
 > * git log
+> * Tree：Content是“旗下”的文件或目录的SHA1
 
 We have seen that Git is a persistent map, but you probably don't see it as a map, you see it as something more than that, something that tracks your files, and your directories, a content tracker.
 
@@ -70,7 +71,7 @@ cookbook
 
 再次使用`git status`可以看到stage是干净的了。
 
-使用`git log`查看提交历史：
+使用`git log`查看__提交历史__：
 ```
 commit 7091a047be05f5e0f6d547656524aa6f3f976658 (HEAD -> master)
 Author: LobbyBoy-Dray <gjw2014sis@163.com>
@@ -79,7 +80,7 @@ Date:   Thu Feb 28 00:23:28 2019 +0800
     first commit
 ```
 
-这里，我们可以拿到__此次提交__的SHA1。使用`git cat-file -p [SHA1]`查看此次提交的信息：
+这里，我们可以拿到此次提交的SHA1。使用`git cat-file -p [SHA1]`查看此次提交的信息：
 ```
 tree cc121029c9e1e1a70420857b7f3d614acf8be976
 author LobbyBoy-Dray <gjw2014sis@163.com> 1551284608 +0800
@@ -88,13 +89,11 @@ committer LobbyBoy-Dray <gjw2014sis@163.com> 1551284608 +0800
 first commit
 ```
 
-所以，commit的实质是什么？It's a simple and very short piece of text, nothing else. 里面有一个tree。__tree是Git存储的目录，就像blob是Git存储的文件__。The commit is pointing at the root directory of the project——提交指向项目的根目录，因此这个tree就是项目的根目录的SHA1。
+所以，commit的实质是什么？It's a simple and very short piece of text, nothing else——commit不过是一段文本，内含：①tree；②author；③time；④comment。其中，__Tree__十分重要。__Tree也是一个SHA1-Content键值对，表示Git存储的目录，就像blob是Git存储的文件__。The commit is pointing at the root directory of the project——Commit指向项目的根目录，因此这个tree就是项目根目录的SHA1。
 
-我们再次使用`git cat-file -p`打开根目录的SHA1，发现里面存了一个blob和一个tree，就是那个文件和文件夹。再次使用上述命令，可以最终追到最后一个文本文件里面的内容。
+我们再次使用`git cat-file -p`打开根目录的SHA1，发现里面储存了一个blob和一个tree的SHA1——即其下的文件和文件夹。再次使用上述命令，可以跟踪至最后一个文本文件里面的内容。如下图所示：
 
-![Alt text](./屏幕快照 2019-02-28 上午9.47.09.png)
-
-However, the SHA1 of the commit, that one will be different, because you have different data in your commit, a different author, and a different commit date. The important thing to understand here is that there is no magic behind SHA1s, if you have the same content I do, then you get the same hashes. A commit is also just a piece of content, and your commit has different content than mine, so you get a different hash. It's as simple as that.
+![Alt text](./2.png)
 
 ### 4. Git的版本控制功能
 
@@ -105,137 +104,152 @@ However, the SHA1 of the commit, that one will be different, because you have di
 * 再`git commit -m [info]`
 * `git log`可以查看所有的提交信息，最近的最靠前
 
-第二次（除第一次）的commit的信息里，除了根目录tree，还有一个__parent__——指向上一次的commit——__commits are linked__，即“提交”之间是连接起来的。
+从第二次提交开始，commit的信息里除了根目录tree，还有一个__parent__——指向上一次的commit——__commits are linked__，即“提交”之间是连接起来的。
 
-![Alt text](./屏幕快照 2019-02-28 上午9.59.00.png)
+![Alt text](./3.png)
 
 如果内容没有变，则SHA1不会变；如果内容发生变化，SHA1改变。
 
-### 5. Annotated Tags
+### 5. 含附注标签: Annotated Tags
 
 标签(Tag)：A tag is like a label for the current state of the project：
-* regular tags
-* annotated tags：the ones that come with a message——带有信息的标签。
+* 轻量级标签：lightweight tag
+* 含附注标签：annotated tag，the one that come with a message
 
-使用`git tag -a [标签名] -m [信息]`来创建tag。
+使用`git tag -a [标签名] -m [信息]`来创建含附注标签。
 
-In fact an annotated tag is also an object in Git's object database like a commit.
+In fact an annotated tag is also an object in Git's object database like a commit——标签和提交类似，也是Git对象。
 
 使用`git cat-file -p [tag名]/[tag SHA1]`查看tag的内容——It contains metadata such as the tag's message, the name, the tagger, the date, and most importantly an object that the tag is pointing to——它也指向某个对象！In this case it's a commit.
 
-![Alt text](./屏幕快照 2019-02-28 上午10.18.09.png)
+![Alt text](./4.png)
 
 所以，tags是a simple label attached to an object.
 
-综上，我们知道，Git里面的对象有：
-* Blob：arbitrary content
-* Tree：the equivalent of directories
-* Commit
-* Annotated tag
+### 6. 小结
 
-## 二. 分支: Branches
+Git有四种对象：Git对象都是键值对，键是SHA1，值是文本数据
+
+* Blob：表示文件，内容是“文件内容”；
+* Tree：表示目录，内容是“内部对象的SHA1”；
+* Commit：表示提交，内容是“提交信息+提交后版本根目录的SHA1”；
+* Annotated tag：带附注标签，内容是“标签内容+连接的对象的SHA1”；
+
+## 二. Git中的分支: Branch
 
 ### 1. 分支的实质
 
-Git会在我们做第一次提交动作时，创建一个branch。使用`git branch`查看所有的branch。发现，这个创建的默认branch叫做`master`。
+> Branch的实质是：Reference to a commit，内含最近一次Commit的SHA1。
 
-Git将branch放在`/.git/refs/heads`中。如master分支就被保存在master文件中，且该文件没有被压缩，可以直接打开——是一个SHA1——是最近提交的Commit的SHA1。
+Git会在我们第一次做提交动作时，创建一个branch。使用`git branch`查看所有的branch。发现，这个创建的默认branch叫做`master`。
+
+Git将branch放在`./.git/refs/heads`中。可以在heads文件夹中看到master文件，且该文件没有被压缩，可直接打开——是一个SHA1——是最近一次Commit的SHA1。
 
 因此，A branch is just a reference to a commit——分支是提交的引用——a pointer to a commit——指向一个提交。
 
+![5](.\5.png)
+
 使用`git branch [分支名]`创建新的分支。
 
-![Alt text](./屏幕快照 2019-02-28 上午10.33.25.png)
+![Alt text](./6.png)
 
-### 2. 当下的分支
+### 2. 当前分支: HEAD
 
+> HEAD是当前Branch的引用，内含当前Branch的名称
+>
 > git checkout
 
-在`git branch`中，当下的分支会被星号标记。
+在`git branch`中，当前分支会被__星号__标记。
 
-Git怎么知道哪个分支是当前分支？当下的分支会被存储在`/.git/HEAD`中，可以直接打开查看——HEAD is just a reference to a branch。
+Git怎么知道当前处于哪个分支？当前分支会被存储在`./.git/HEAD`中，可以直接打开查看——HEAD is just a reference to a branch。
 
 此时，我们修改一个文件，并提交修改，发生的事情如下：
 
-![Alt text](./屏幕快照 2019-02-28 上午10.40.14.png)
+![Alt text](./7.png)
 
 ↓
 
-![Alt text](./屏幕快照 2019-02-28 上午10.40.46.png)
+![Alt text](./8.png)
 
 master branch指向的commit改变了，但是HEAD指向没变，还是指向master。
 
 使用`git checkout [分支名]`改变当前分支：
 
-![Alt text](./屏幕快照 2019-02-28 上午10.43.14.png)
+![Alt text](./9.png)
 
-状态也就回到了之前的状态——文件还未被修改。
+此时，Working area返回到之前的状态，即文件还未被修改（因为一个Commit就相当于一个历史版本）。
 
-因此，checkout的作用是：
+因此，Checkout的作用是：
 * move HEAD
 * updating the working area
 
 此时如果进行修改并提交，则：
 
-![Alt text](./屏幕快照 2019-02-28 上午10.47.51.png)
+![Alt text](./10.png)
 
-### 3. 合并: Merge
+### 3. 分支合并: Merge
 
-`git merge [分支名]`，可能发生conflict。打开发生冲突的文件，我们发现冲突处会被Git贴心地标记出来，你要进行修改：
+让我们使用`git checkout master`回到默认分支：
 
-![Alt text](./屏幕快照 2019-02-28 上午10.55.41.png)
+![Alt text](./11.png)
+
+使用命令`git merge lisa`以合并分支。合并时可能发生conflict。打开发生冲突的文件，我们发现冲突处会被Git贴心地标记出来，你要进行修改：
+
+![Alt text](./12.png)
 
 处理完毕后，需要stage再提交，此时不用添加提交注释。
 
 合并提交的commit有两个parent：
 
-![Alt text](./屏幕快照 2019-02-28 上午10.58.50.png)
+![Alt text](./13.png)
 
-小结：merge命令会创建一个新的Commit，并把当前分支移动到该Commit上。
+小结：Merge命令会创建一个新的commit，并把当前分支移动到该commit上。
 
-### 4. 回顾blob与tree
+### 4. 回顾Blob与Tree
 
 Git的四种对象：blob、tree、commit、annotated tag之间，是reference关系。
 
-Commits之间的references用来追溯历史（content），其他references用来追溯内容（content）。
+Commits之间的references用来__追溯历史（content）__，其他references用来__追溯内容（content）__。
 
-Git mostly doesn't care about your working directory。在做checkout转换分支的操作时，Git只是把之前存储在database中对象里的内容拿了出来展示给你——“备份的历史版本”。
+Git mostly doesn't care about your working directory——Git并不关注你的工作区域，因为工作区域可以通过`.git`中的数据文件生成。
 
-### 5. 非合并的合并
+在做checkout转换分支的操作时，Git只是把之前存储在database中对象里的内容拿了出来并展示给你——“备份的历史版本”。
 
-![Alt text](./屏幕快照 2019-02-28 上午11.27.20.png)
+### 5. “非合并”的合并: Fast-Forward
+
+![Alt text](./14.png)
 
 要将master分支合并到lisa分支上——刚才已经在处理完冲突的基础上，将lisa合并到master上了。因此，此次合并并不会产生新的东西。
 
-![Alt text](./屏幕快照 2019-02-28 上午11.30.33.png)
+![Alt text](./15.png)
 
-### 6. Detached HEAD
+### 6.头分离: Detached HEAD
 
 回忆，checkout是转换当前分支的方法，因为checkout后面应该跟着分支名称。然而，我们可以直接checkout一个commit，如下：
 
-![Alt text](./屏幕快照 2019-02-28 上午11.42.25.png)
+![Alt text](./16.png)
 
 ↓
 
-![Alt text](./屏幕快照 2019-02-28 上午11.45.09.png)
+![Alt text](./17.png)
 
-此时，我们并不在branch上——Detached HEAD。
+“当前”，我们并不在某个branch上，而是直接在某个commit上——Detached HEAD。
 
 在Detached HEAD时，我们可以对代码安全地进行很多实验：
 
-![Alt text](./屏幕快照 2019-02-28 上午11.46.47.png)
+![Alt text](./18.png)
 
 如果觉得代码不好，可以直接checkout会原来的分支：
 
-![Alt text](./屏幕快照 2019-02-28 上午11.47.34.png)
+![Alt text](./19.png)
 
-此时，刚才的那些commit我们只能通过SHA1来获取，且一段时候被冷落后，会被Git作为垃圾回收。
+此时，刚才的那些commit我们只能通过SHA1来获取，且一段时候被“冷落”后，会被Git作为垃圾回收。
 
-所以如果我们此时反悔了，还可以通过checkout SHA1来回溯到刚才的commit，再在此commit处用`git branch`创建一个新的branch：
+如果我们此时反悔了，还可以通过git checkout SHA1来回溯到刚才的commit，再在此commit处用`git branch`创建一个新的branch：`git branch nogood`
 
-![Alt text](./屏幕快照 2019-02-28 上午11.52.43.png)
+![Alt text](./20.png)
 
-### 7. Review
+### 7. 小结
 
 什么是Repo？Repo是一堆对象连接而成的图(graph)；
 
@@ -243,20 +257,20 @@ Git mostly doesn't care about your working directory。在做checkout转换分�
 
 什么是HEAD？HEAD是指向当前位置的引用，“当前位置”一般是某个Branch，也可以是Commit——Detached HEAD。
 
-![Alt text](./屏幕快照 2019-02-28 上午11.57.09.png)
+![Alt text](./21.png)
 
-Three Rules：
+__Three Rules__：
 * The current branch tracks new commits——每次在一个分支上提交时，分支也会跟着移动到最新的那个提交；
 * When you move to another commit，Git updates your working directory；
 * Unreachable objects are garbage collected。
 
-## 三. Rebase
+## 三. Merge的孪生兄弟: Rebase
 
-作用类似于merge。
+Rebase的作用类似于merge，都是合并分支。
 
-### 1. 什么是rebase
+### 1. 什么是rebase？
 
-![Alt text](./屏幕快照 2019-02-28 下午1.20.47.png)
+![Alt text](./22.png)
 
 我们目前有两个branch：
 * master：修改了一些apple pie的菜谱内容；
