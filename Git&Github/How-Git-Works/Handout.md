@@ -22,7 +22,7 @@ Git会根据你提供的对象，运用SHA1算法，计算出相应的__独一�
 
 可以使用命令行来计算一个字符串的SHA1，这需要用到low-level plumbing command——`git hash-object`。但不可以直接`git hash-object "apple pie"`，需要`echo "apple pie" | git hash-object --stdin`。
 
-![1](.\1.png)
+![Alt text](./1.png)
 
 The same content, the same SHA1——内容一样，则SHA1一样。Git中的每一个对象都有一个SHA1。SHA1不会重复——SHA1s are unique。
 
@@ -147,7 +147,7 @@ Git将branch放在`./.git/refs/heads`中。可以在heads文件夹中看到maste
 
 因此，A branch is just a reference to a commit——分支是提交的引用——a pointer to a commit——指向一个提交。
 
-![5](.\5.png)
+![5](./5.png)
 
 使用`git branch [分支名]`创建新的分支。
 
@@ -279,39 +279,39 @@ Rebase的作用类似于merge，都是合并分支。
 
 我们当然可以用merge命令将两个分支合并。
 
-![Alt text](./屏幕快照 2019-02-28 下午1.23.45.png)
+![Alt text](./23.png)
 
 但是，我们还可以rebase命令：`git rebase master`
 * 首先，Git会沿着spaghetti的路径查找第一个也是master的commit路径上的commit——图中红色的commit；
 * 然后，Git将spaghetti的分支从该commit处切下；
 
-![Alt text](./屏幕快照 2019-02-28 下午1.26.35.png)
+![Alt text](./24.png)
 
 * 再将其补到master分支的上方，此时，spaghetti分支也有了master分支中的所有commits：
 
-![Alt text](./屏幕快照 2019-02-28 下午1.29.01.png)
+![Alt text](./25.png)
 
 * 最后，我们可以checkout回master分支，fast-forword到spaghetti的commit位置，此时merge和rebase没有差别：
 
-![Alt text](./屏幕快照 2019-02-28 下午1.39.26.png)
+![Alt text](./26.png)
 
 ### 2. rebase的实质
 
-rebase的实质并不是像上节描述的那样——从base处切断，再将其接到另一个分支上——因为在Git中，commits是database对象，是不可变的；而你要移动commits，则至少会改变其parent，那么肯定要改变其SHA1！
+rebase的实质并不是像上节描述的那样——从base处切断，再将其接到另一个分支上——因为在Git中，commits是对象，是不可变的；而你要移动commits，则至少会改变其parent，那么肯定要改变其SHA1！
 
 所以，Git将该link从base处复制一遍，改了SHA1，再接到master上：
 
-![Alt text](./屏幕快照 2019-02-28 下午4.00.09.png)
+![Alt text](./27.png)
 
 最后将rebased branch移动到新的那个commit上面：
 
-![Alt text](./屏幕快照 2019-02-28 下午4.05.36.png)
+![Alt text](./28.png)
 
 ### 3. 垃圾回收
 
-复制的那一串commits被移植，原来的旧的commits怎么处理？况且Branch也被移植走了，所以原来的那串commits几乎是unreachable的。Git会持续监视，如果一段时间你都没用去管这串commits的话，Git就会启动垃圾回收机制，删除这段旧的commits——garbage collection。
+复制的那一串commits被移植，原来旧的commits怎么处理？况且Branch也被移植走了，所以原来的那串commits几乎是unreachable的。Git会持续监视，如果一段时间你都没用去管这串commits的话，Git就会启动垃圾回收机制，删除这段旧的commits——garbage collection。
 
-### 3. Merge的优劣
+### 4. Merge的优劣
 
 Rebase和Merge做的事情十分类似——they both enroll existing commit in the history of a branch.
 
@@ -323,11 +323,11 @@ In this case, for example, you can clearly see that the yellow commits and the b
 
 但是，对于大型项目而言，使用Merge可能使得结构变得十分混乱——a lot of branching, a lot of merging——很难去识别分支在哪里岔开，又在哪里合并。
 
-另外`git log`把各个commits展示得像一条line，但实际上市一个graph，有一些commits并不在一个branch上，是平行的。所以可能导致误解。
+另外`git log`把各个commits展示得像一条line，但实际上是一个graph，有一些commits并不是线性顺承的关系，而是平行的。所以可能导致误解。
 
 综上，__merges preserve the project history__——merges never lie.
 
-### 4. Rebase的优劣
+### 5. Rebase的优劣
 
 使用rebase，可以使commits被排列在一条线上，很整洁、干净。但是如果看rebase的history，我们可能被欺骗。
 
@@ -342,8 +342,8 @@ When in doubt, just merge.
 ### 5. Tags
 
 Git有两种标签：
-* annotated-tag
-* lightweight-tag：不需要作者、时间这些多余信息，更加轻量级的tag
+* Annotated-tag：带附注标签
+* Lightweight-tag：轻量级标签，不需要作者、时间这些多余信息，更加轻量级的tag
 
 `git tag -a dinner`：创建名为dinner的annotated-tag
 
@@ -351,20 +351,21 @@ Git有两种标签：
 
 tags都在`refs/tags`里。
 
-tag和branch都是指向某个commit的引用，区别是：A tag is like a branch that doesn't move.
+tag和branch都是指向某个commit的引用，区别是：__A tag is like a branch that doesn't move__.
 
-总结：
+### 6. 小结
+
 * branches、merges、rebases、tags——使Git从一个傻逼的文件追踪器变成版本管理系统。
 
-## 四. 分布式
+## 四. Git的分布式特性
 
 One computer → multiple computers
 
-### 1. 与云端连通
+### 1. 与远程端连通
 
-使用`git clone [URL]`从云端将项目拷贝至本地电脑——本地仓库（local repo）。URL从Github上查看。
+使用`git clone [URL]`从远程端(remote)将项目拷贝至本地电脑——本地仓库（local repo）。URL从Github上查看。
 
-拷贝是拷贝`.git`文件夹，且这种拷贝并不是拷贝everything，例如：`git clone` only copies one branch, the master branch.
+拷贝是拷贝`.git`文件夹，且这种拷贝并不是拷贝everything，例如：`git clone` only copies one branch, the master branch——其他branch在local中是隐藏状态。
 
 此后，Git将根据master branch的引用，构造工作区域。
 
@@ -374,7 +375,7 @@ One computer → multiple computers
 
 同时，我们有一个master分支，对应的是远程端的master分支。
 
-同步时，Git需要知道远程端(origin)的状态——有哪些branch？这些branch又指向哪些commits？事实上，Git的确存储了remote的关于branch及其引用的信息。
+同步时，Git需要知道远程端的状态——有哪些branch？这些branch又指向哪些commits？事实上，Git的确在local存储了remote的关于branch及其引用的信息。
 
 `git branch`仅仅显示本地仓库的branch，使用`git branch --a`显示包括上一次同步时获取的远程仓库的branch(包括HEAD)，当然也有本地的master branch。
 
@@ -386,43 +387,45 @@ One computer → multiple computers
 
 A local branch in Git is just a reference to a commit. Well, a remote branch is exactly the same thing. Whenever you synchronize with the remote, Git updates remote branches.
 
-### 3. Push: 推
+### 3. Push: 向远程端推送更新
 
-![Alt text](./屏幕快照 2019-02-28 下午7.36.16.png)
+![Alt text](./29.png)
 
-在remote未发生变化的情况下，local进行了一些修改，即生成了新的commits；此时同步，十分简单，只需将生成的这些commits拷贝过去即可。
+在remote未发生变化的情况下，local进行了一些修改(即生成了新的commits)；此时同步，十分简单，只需将生成的这些commits拷贝过去即可。
 
 同时，还有一些东西需要拷贝——Git also has to keep the branches synchronized on the various clones——保持branches同步。
 
-例如：我修改了里层文件夹中的文本文件——新的blob，新的tree，新的commit，且本地的master branch会指向这个最新的commit；然而，remote(origin) master branch还停留在之前同步的位置。
+例如：我修改了里层文件夹中的文本文件——新的blob，新的tree，新的commit，且本地的master branch会指向这个最新的commit；然而，remote master branch还停留在之前同步的位置。
 
-因此，在Push的时候，我们不仅仅是push了新的objects，还同时push了最新的branch和HEAD。同时，因为remote端的master branch的更新，本地端的remote master branch也得到同步更新——Git updated our remote branches to align with the current state of origin.
+因此，在Push的时候，我们不仅仅是push了新的objects，还同时push了最新的branch和HEAD。同时，因为remote的master branch的更新，本地端的remote master branch也得到同步更新——Git updated our remote branches to align with the current state of origin.
 
-### 4. Pull: 拉
+__图解__：
 
-Pull：read changes from the remote
-
-![Alt text](./屏幕快照 2019-02-28 下午8.27.15.png)
+![Alt text](./30.png)
 
 在local修改：
 
-![Alt text](./屏幕快照 2019-02-28 下午8.28.04.png)
+![Alt text](./31.png)
 
 此时push到remote，先拷贝objects：
 
-![Alt text](./屏幕快照 2019-02-28 下午8.28.53.png)
+![Alt text](./32.png)
 
 并将local master branch同步过去：
 
-![Alt text](./屏幕快照 2019-02-28 下午8.30.26.png)
+![Alt text](./33.png)
 
-再feedback给本地，告知remote的master branch已经更新：
+Remote再feedback给本地，告知remote的master branch已经更新：
 
-![Alt text](./屏幕快照 2019-02-28 下午8.31.03.png)
+![Alt text](./34.png)
 
-但是，在我们对local repo做出修改，刚刚想push的时候，我们不幸发现，其他人刚刚向remote push了新的修改——此时，冲突产生：
+### 4. Pull: 从远程端拉入更新
 
-![Alt text](./屏幕快照 2019-02-28 下午8.32.57.png)
+Pull：read changes from the remote
+
+试想，在我们对local repo做出修改，刚刚想push的时候，不幸发现，其他人刚刚向远程端push了新的修改——此时，冲突产生：
+
+![Alt text](./35.png)
 
 两种解决方案：
 
@@ -432,80 +435,80 @@ Pull：read changes from the remote
 
 1. 拷贝objects
 
-![Alt text](./屏幕快照 2019-02-28 下午8.35.18.png)
+![Alt text](./36.png)
 
 2. 同步master branch
 
-![Alt text](./屏幕快照 2019-02-28 下午8.36.23.png)
+![Alt text](./37.png)
 
 3. feedback remote master branch
 
-![Alt text](./屏幕快照 2019-02-28 下午8.37.11.png)
+![Alt text](./38.png)
 
-由于其他人的commit成为准unreachable状态，最终会被垃圾回收。
+由于其他人的commit(绿色圈圈)成为准unreachable状态，最终会被垃圾回收。
 
 __第二，使用git fetch化解冲突__。
 
 1. 将remote端的变化更新到local：
 
-![Alt text](./屏幕快照 2019-02-28 下午8.41.18.png)
+![Alt text](./39.png)
 
 2. 在local更新remote master branch：
 
-![Alt text](./屏幕快照 2019-02-28 下午8.42.54.png)
+![Alt text](./40.png)
 
 3. `git merge origin/master`
 
-![Alt text](./屏幕快照 2019-02-28 下午8.45.52.png)
+![Alt text](./41.png)
 
 4. `git push`
 
-![Alt text](./屏幕快照 2019-02-28 下午8.49.43.png)
+![Alt text](./42.png)
 
-![Alt text](./屏幕快照 2019-02-28 下午8.49.52.png)
+![Alt text](./43.png)
 
 __小结__：This sequence of a git fetch followed by a git merge is so common that there is one single command that does both. It's called, you guessed it, git pull. A fetch followed by a merge.
 
-### 5. About Rebase
+### 5. 合作项目: 慎用Rebase
 
-![Alt text](./微信截图_20190228222756.png)
+![Alt text](./44.png)
 
-在本地，我们希望把master并到lisa上。很简单，使用`git rebase master`：
+在local，我们希望把master并到lisa上。很简单，使用`git rebase master`：
 
-![Alt text](./微信截图_20190228223008.png)
+![Alt text](./45.png)
 
 此时，如果我们要push到remote，会产生冲突。但这个冲突很好解决。解决之后：
 
-![Alt text](./微信截图_20190228224801.png)
+![Alt text](./46.png)
 
 但对于另外一个开发者来说，情况会很糟糕：
 
-![Alt text](./微信截图_20190228224838.png)
+![Alt text](./47.png)
 
 她本来就只负责lisa这个分支。有一天，她在自己的local做了新的commit：
 
-![Alt text](./微信截图_20190228232314.png)
+![Alt text](./48.png)
 
 这时她要向remote同步，结果懵逼了，发现conflict？？？可她什么都没做啊。
 
 所以，使用rebase的底线是：Never rebase stuff that has been shared with some other repository——永远不要在和别人共同工作的项目中用rebase！**Never rebase shared commits**。
 
-### 6. Github Features
+### 6. Github的特性
 
 Github上不属于你的项目，你肯定不可以去push它。
 
 但是我们可以在Github上Fork它：A fork is kind of like a clone, but it's a remote clone(Fork是一种像是clone的操作，但是一种远程clone)。什么意思呢？We are cloning the project from someone else's GitHub account to our own GitHub account——我们从别人的GitHub账户中拷贝项目到自己的账户中：
 
-![Alt text](./微信截图_20190228234539.png)
+![Alt text](./49.png)
 
-然后，我们可以clone这个自己账户里的别人的项目到local：
+然后，我们可以clone自己账户里的别人的项目到local：
 
-![Alt text](./微信截图_20190228234612.png)
+![Alt text](./50.png)
 
-但是出现了一个问题：Git并不知道local的这个repo的original repo是什么。因此那位作者如果对项目进行了更新，local端无法得知，更无法同步更新。此时就需要手动把local和那个人的remote repo连接在一起——就如local和自己Github中的remote origin连接在一起一样。我们取那个人的remote名为upstream：
+但是出现了一个问题：Git并不知道local的这个repo的original repo是什么。因此如果那位作者对项目进行了更新，local端无法得知，更无法同步更新。此时就需要手动把local和那个人的remote repo连接在一起——就如local和自己Github中的remote origin连接在一起一样。我们取那个人的remote名为upstream：
 
-![Alt text](./微信截图_20190228234923.png)
+![Alt text](./51.png)
 
-我们只能从upstream来pull新内容，不能push我们自己写的东西——因为我们没有写的权力，东西不是咱的。但是，Github提供了Pull Requests功能，允许我们向作者询问，是否接纳我们的修改：
+我们只能从upstream来pull新内容，不能push我们自己写的东西——因为我们没有写的权限，毕竟东西不是咱的。但是，Github提供了Pull Requests功能，允许我们向作者询问，是否接纳我们的修改：
 
-![Alt text](./微信截图_20190228235305.png)
+![Alt text](./52.png)
